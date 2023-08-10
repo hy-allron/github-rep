@@ -2,6 +2,7 @@ package edu.jiangxuan.up.spi;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.ServiceLoader;
 
 public class LoggerService {
@@ -9,19 +10,18 @@ public class LoggerService {
 
     private final Logger logger;
 
-    private final List<Logger> loggerList;
-
     private LoggerService() {
         ServiceLoader<Logger> loader = ServiceLoader.load(Logger.class);
         List<Logger> list = new ArrayList<>();
         for (Logger log : loader) {
             list.add(log);
         }
-        // LoggerList 是所有 ServiceProvider
-        loggerList = list;
+
         if (!list.isEmpty()) {
-            // Logger 只取一个
-            logger = list.get(0);
+            // 随机获取一个实现类
+            Random random = new Random();
+            int i = random.nextInt(list.size());
+            logger = list.get(i);
         } else {
             logger = null;
         }
@@ -40,9 +40,10 @@ public class LoggerService {
     }
 
     public void debug(String msg) {
-        if (loggerList.isEmpty()) {
+        if (logger == null) {
             System.out.println("debug 中没有发现 Logger 服务提供者");
+        } else {
+            logger.info(msg);
         }
-        loggerList.forEach(log -> log.debug(msg));
     }
 }
